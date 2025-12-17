@@ -3,15 +3,19 @@ import AboutSection from '../components/AboutSection';
 import PortfolioShowcase from '../components/PortfolioShowcase';
 import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
+import FloatingWhatsApp from '../components/FloatingWhatsApp';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <HeroSection />
       <AboutSection />
-      <PortfolioShowcase />
+      <div id="proyectos">
+        <PortfolioShowcase />
+      </div>
       <ContactSection />
       <Footer />
+      <FloatingWhatsApp />
     </div>
   );
 }
