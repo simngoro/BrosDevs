@@ -8,8 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-script: var(--font-script);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,8 +23,38 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   scroll-behavior: smooth;
+}
+
+/* Typography utilities matching fivepathways style */
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+  letter-spacing: -0.01em; /* Slightly tighter letter spacing like fivepathways */
+  font-weight: 400; /* Regular weight, adjust with font-bold/font-semibold as needed */
+}
+
+.font-script {
+  font-family: var(--font-script), Georgia, serif; /* Bellefair is a serif, not script */
+  font-style: italic; /* For decorative italic serif like "Belle" */
+}
+
+/* Body text styling to match fivepathways */
+body, .font-sans {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-weight: 400; /* Regular weight */
+  letter-spacing: 0; /* Normal letter spacing */
+}
+
+/* Ensure all buttons and links use sans-serif */
+button, a, input, select, textarea {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Headlines should use serif */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif), Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 /* Smooth scrolling */

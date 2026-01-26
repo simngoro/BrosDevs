@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bodoni_Moda, Inter, Bellefair } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Elegant serif for headlines - Bodoni Moda is closest to "Neue" (Didone style, high contrast)
+const bodoniModa = Bodoni_Moda({
+  variable: "--font-serif",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Clean sans-serif for body text and UI
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+// Elegant decorative serif for "Belle" style - used for decorative elements
+const bellefair = Bellefair({
+  variable: "--font-script",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -31,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${bodoniModa.variable} ${inter.variable} ${bellefair.variable} antialiased`}
       >
         {children}
       </body>

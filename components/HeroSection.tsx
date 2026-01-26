@@ -1,322 +1,545 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
-import { useInView } from 'react-intersection-observer';
+import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import ParticleBackground from './ParticleBackground';
+import FloatingGeometry from './FloatingGeometry';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function HeroSection() {
+  const heroRef = useRef<HTMLElement>(null);
+  const boatRef = useRef<SVGGElement>(null);
+  const waterWavesRef = useRef<SVGPathElement[]>([]);
+  const landscapeRef = useRef<SVGSVGElement>(null);
+  
   const whatsappNumber = '+5492915109116';
   const whatsappMessage = encodeURIComponent('¡Hola DevBros! Me interesa conocer más sobre sus servicios de desarrollo web y móvil.');
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`;
-  
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-  
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
-  
-  // Removed mouse tracking for better performance
 
-  const [ref, inView] = useInView({
-    threshold: 0.1,
-    triggerOnce: false,
-  });
+  // Function to calculate water level based on X position (following the wave curve)
+  const getWaterLevel = (x: number) => {
+    // Water wave formula: follows the curve of the water
+    // Base level is 600, with wave variation matching the SVG path
+    const baseY = 600;
+    // Match the wave pattern from the SVG: Q200,580 400,600 T800,590 T1200,600
+    // Simplified wave calculation
+    const waveAmplitude = 15;
+    const waveFrequency = 0.005; // Adjusted to match visual wave
+    const waveY = Math.sin(x * waveFrequency) * waveAmplitude;
+    return baseY + waveY;
+  };
 
-  // Optimized particle system - reduced from 50 to 20
-  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, size: number}>>([]);
-  
   useEffect(() => {
-    const newParticles = Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 1,
-    }));
-    setParticles(newParticles);
+    const ctx = gsap.context(() => {
+      // Boat moving left to right on water - following the water line, full screen
+      if (boatRef.current) {
+        const startX = -200; // Start off-screen left
+        const endX = 2120; // End off-screen right (1920 + 200 for smooth exit)
+        const totalDistance = endX - startX;
+        
+        // Create timeline for continuous loop
+        const boatTimeline = gsap.timeline({ repeat: -1 });
+        
+        // Move boat from left to right across entire screen
+        boatTimeline.to(boatRef.current, {
+          x: endX,
+          duration: 25, // Slower for more visible movement
+          ease: 'none',
+          onUpdate: function() {
+            if (boatRef.current) {
+              // Calculate current X position
+              const currentX = startX + (this.progress() * totalDistance);
+              const waterY = getWaterLevel(currentX);
+              // Set Y position to follow water line
+              // Base transform is 580, adjust based on wave calculation
+              gsap.set(boatRef.current, { y: waterY - 600 + 580 });
+              
+              // Gentle rotation based on wave slope (derivative of wave)
+              const slope = Math.cos(currentX * 0.005) * 0.075;
+              gsap.set(boatRef.current, { rotation: slope * 10 });
+            }
+          }
+        });
+        
+        // Reset position instantly (invisible transition)
+        boatTimeline.set(boatRef.current, { 
+          x: startX,
+          y: getWaterLevel(startX) - 600 + 580,
+          rotation: 0,
+          duration: 0
+        });
+      }
+
+      // Water waves animation
+      waterWavesRef.current.forEach((wave, index) => {
+        if (wave) {
+          gsap.to(wave, {
+            attr: { d: wave.getAttribute('d')?.replace(/Q\d+,\d+/, `Q${300 + index * 50},${650 + index * 5}`) || '' },
+            duration: 2 + index * 0.3,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+          });
+        }
+      });
+
+      // Parallax landscape on scroll
+      if (landscapeRef.current) {
+        gsap.to(landscapeRef.current, {
+          y: 100,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+          },
+        });
+      }
+    }, heroRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
     <section 
-      ref={containerRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
+      ref={heroRef}
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-20"
     >
-      {/* Advanced gradient mesh background */}
-      <motion.div 
-        className="absolute inset-0"
-        style={{ y, opacity, scale }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-black to-slate-900"></div>
-        
-        {/* Animated gradient orbs */}
-        <motion.div 
-          className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-blue-600/30 rounded-full blur-[150px]"
-          animate={{ 
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div 
-          className="absolute bottom-0 right-1/4 w-[900px] h-[900px] bg-cyan-500/20 rounded-full blur-[160px]"
-          animate={{ 
-            x: [0, -80, 0],
-            y: [0, -60, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
-        <motion.div 
-          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-emerald-500/15 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        />
-        
-        {/* Optimized particle system - simplified for performance */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {particles.map((particle, idx) => (
-            <div
-              key={particle.id}
-              className="absolute rounded-full bg-blue-400/20"
-              style={{
-                width: `${particle.size}px`,
-                height: `${particle.size}px`,
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
-                animation: `float ${10 + (idx % 5) * 2}s infinite ease-in-out`,
-                animationDelay: `${idx * 0.5}s`,
-              }}
-            />
-          ))}
-        </div>
-        
-        {/* Simplified grid - removed 3D transforms for performance */}
-        <div 
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(59,130,246,0.6) 1px, transparent 1px),
-                             linear-gradient(90deg, rgba(59,130,246,0.6) 1px, transparent 1px)`,
-            backgroundSize: '100px 100px',
-          }}
-        />
-      </motion.div>
-      
-      <div ref={ref} className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="max-w-7xl mx-auto">
-          {/* Badge with advanced animation */}
-          <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.9 }}
-            animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center px-6 py-3.5 sm:px-8 sm:py-4 mb-12 sm:mb-16 text-xs sm:text-sm font-semibold text-emerald-300 border border-emerald-400/40 rounded-full bg-emerald-500/10 backdrop-blur-xl hover:bg-emerald-500/20 hover:border-emerald-400/60 transition-all duration-300 shadow-2xl shadow-emerald-500/30"
-          >
-            <motion.span 
-              className="w-3 h-3 bg-emerald-400 rounded-full mr-3 shadow-lg shadow-emerald-400/70"
-              animate={{ 
-                scale: [1, 1.3, 1],
-                boxShadow: [
-                  '0 0 10px rgba(16, 185, 129, 0.6)',
-                  '0 0 20px rgba(16, 185, 129, 0.8)',
-                  '0 0 10px rgba(16, 185, 129, 0.6)',
-                ],
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            <span className="hidden sm:inline">Disponibles para nuevos proyectos</span>
-            <span className="sm:hidden">Disponibles ahora</span>
-          </motion.div>
-          
-          {/* Kinetic typography - Main heading */}
-          <motion.h1 
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[12rem] font-black mb-8 sm:mb-10 leading-[0.85] tracking-tighter"
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            transition={{ duration: 1, delay: 0.4 }}
-            style={{
-              textShadow: '0 0 80px rgba(59, 130, 246, 0.5), 0 0 40px rgba(16, 185, 129, 0.3)',
+      {/* Full Page Landscape Illustration - No margins */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <svg
+          ref={landscapeRef}
+          className="w-full h-full"
+          viewBox="0 0 1920 1080"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffe5d4" />
+              <stop offset="25%" stopColor="#ffd4b3" />
+              <stop offset="50%" stopColor="#ffc49b" />
+              <stop offset="75%" stopColor="#ffb380" />
+              <stop offset="100%" stopColor="#fcf8f3" />
+            </linearGradient>
+            <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#6bb5d4" />
+              <stop offset="30%" stopColor="#5ba3c2" />
+              <stop offset="60%" stopColor="#4a90a4" />
+              <stop offset="100%" stopColor="#2c5f6b" />
+            </linearGradient>
+            <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#e8d5b7" />
+              <stop offset="100%" stopColor="#d4a574" />
+            </linearGradient>
+            <filter id="waterGlow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Sky - Full coverage with animated gradient */}
+          <motion.rect 
+            width="1920" 
+            height="1080" 
+            fill="url(#skyGradient)"
+            animate={{
+              opacity: [1, 0.95, 1]
             }}
-          >
-            <motion.span 
-              className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 via-blue-400 to-cyan-300"
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+          />
+
+          {/* Distant Mountains - Hand-drawn style with black outlines */}
+          <g>
+            <path
+              d="M0,400 L300,320 L600,350 L900,300 L1200,330 L1500,310 L1800,340 L1920,320 L1920,1080 L0,1080 Z"
+              fill="url(#mountainGradient)"
+              stroke="#1a1a1a"
+              strokeWidth="3"
+              opacity="0.6"
+            />
+            {/* Mountain details - hand-drawn lines */}
+            <path d="M300,320 L350,300 L400,310" stroke="#1a1a1a" strokeWidth="2" fill="none" opacity="0.4" />
+            <path d="M900,300 L950,290 L1000,295" stroke="#1a1a1a" strokeWidth="2" fill="none" opacity="0.4" />
+          </g>
+          <g>
+            <path
+              d="M0,500 L400,420 L800,450 L1200,400 L1600,430 L1920,410 L1920,1080 L0,1080 Z"
+              fill="url(#mountainGradient)"
+              stroke="#1a1a1a"
+              strokeWidth="3"
+              opacity="0.7"
+            />
+            {/* Mountain details */}
+            <path d="M400,420 L450,410 L500,415" stroke="#1a1a1a" strokeWidth="2" fill="none" opacity="0.4" />
+            <path d="M1200,400 L1250,390 L1300,395" stroke="#1a1a1a" strokeWidth="2" fill="none" opacity="0.4" />
+          </g>
+
+          {/* Clouds - Hand-drawn style with black outlines */}
+          <g>
+            {/* Cloud 1 */}
+            <motion.g
+              initial={{ x: 0 }}
+              animate={{ x: [0, 100, 0] }}
+              transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+            >
+              <ellipse cx="200" cy="150" rx="120" ry="40" fill="#ffffff" stroke="#1a1a1a" strokeWidth="3" />
+              <ellipse cx="180" cy="140" rx="60" ry="25" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+              <ellipse cx="220" cy="140" rx="70" ry="30" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+            </motion.g>
+            
+            {/* Cloud 2 */}
+            <motion.g
+              initial={{ x: 0 }}
+              animate={{ x: [0, -80, 0] }}
+              transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
+            >
+              <ellipse cx="800" cy="120" rx="150" ry="50" fill="#ffffff" stroke="#1a1a1a" strokeWidth="3" />
+              <ellipse cx="770" cy="110" rx="80" ry="35" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+              <ellipse cx="830" cy="110" rx="90" ry="40" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+            </motion.g>
+            
+            {/* Cloud 3 */}
+            <motion.g
+              initial={{ x: 0 }}
+              animate={{ x: [0, 60, 0] }}
+              transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
+            >
+              <ellipse cx="1400" cy="180" rx="100" ry="35" fill="#ffffff" stroke="#1a1a1a" strokeWidth="3" />
+              <ellipse cx="1380" cy="175" rx="50" ry="20" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+              <ellipse cx="1420" cy="175" rx="55" ry="25" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+            </motion.g>
+          </g>
+
+          {/* Water/Ocean - Hand-drawn style with animated waves */}
+          <g>
+            {/* Base water - starts at water level */}
+            <motion.path
+              d="M0,600 Q200,580 400,600 T800,590 T1200,600 T1600,590 T1920,600 L1920,1080 L0,1080 Z"
+              fill="url(#waterGradient)"
+              stroke="#1a1a1a"
+              strokeWidth="4"
+              animate={{
+                d: [
+                  "M0,600 Q200,580 400,600 T800,590 T1200,600 T1600,590 T1920,600 L1920,1080 L0,1080 Z",
+                  "M0,605 Q200,585 400,605 T800,595 T1200,605 T1600,595 T1920,605 L1920,1080 L0,1080 Z",
+                  "M0,595 Q200,575 400,595 T800,585 T1200,595 T1600,585 T1920,595 L1920,1080 L0,1080 Z",
+                  "M0,600 Q200,580 400,600 T800,590 T1200,600 T1600,590 T1920,600 L1920,1080 L0,1080 Z"
+                ]
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+            
+            {/* Animated wave lines - hand-drawn style */}
+            <motion.path
+              ref={(el) => { if (el) waterWavesRef.current[0] = el; }}
+              d="M0,620 Q200,600 400,620 T800,610 T1200,620 T1600,610 T1920,620"
+              stroke="#1a1a1a"
+              strokeWidth="2.5"
+              fill="none"
+              strokeLinecap="round"
+              animate={{
+                d: [
+                  "M0,620 Q200,600 400,620 T800,610 T1200,620 T1600,610 T1920,620",
+                  "M0,625 Q200,605 400,625 T800,615 T1200,625 T1600,615 T1920,625",
+                  "M0,615 Q200,595 400,615 T800,605 T1200,615 T1600,605 T1920,615",
+                  "M0,620 Q200,600 400,620 T800,610 T1200,620 T1600,610 T1920,620"
+                ]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+            <motion.path
+              ref={(el) => { if (el) waterWavesRef.current[1] = el; }}
+              d="M0,650 Q300,630 600,650 T1200,640 T1920,650"
+              stroke="#1a1a1a"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              animate={{
+                d: [
+                  "M0,650 Q300,630 600,650 T1200,640 T1920,650",
+                  "M0,655 Q300,635 600,655 T1200,645 T1920,655",
+                  "M0,645 Q300,625 600,645 T1200,635 T1920,645",
+                  "M0,650 Q300,630 600,650 T1200,640 T1920,650"
+                ]
+              }}
+              transition={{
+                duration: 3.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 0.3
+              }}
+            />
+            <motion.path
+              ref={(el) => { if (el && waterWavesRef.current.length < 3) waterWavesRef.current.push(el); }}
+              d="M0,680 Q400,660 800,680 T1600,670 T1920,680"
+              stroke="#1a1a1a"
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+              animate={{
+                d: [
+                  "M0,680 Q400,660 800,680 T1600,670 T1920,680",
+                  "M0,685 Q400,665 800,685 T1600,675 T1920,685",
+                  "M0,675 Q400,655 800,675 T1600,665 T1920,675",
+                  "M0,680 Q400,660 800,680 T1600,670 T1920,680"
+                ]
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 0.6
+              }}
+            />
+          </g>
+
+          {/* Trees/Islands - Removed black elements for cleaner design */}
+
+          {/* Boat - Positioned ON the water, following the water line */}
+          <g ref={boatRef} transform="translate(-200, 580)">
+            {/* Boat hull - more detailed, positioned on water line */}
+            <path
+              d="M-70,10 Q-50,-5 0,-10 Q50,-5 70,10 L70,35 Q50,40 0,40 Q-50,40 -70,35 Z"
+              fill="#8b4513"
+              stroke="#1a1a1a"
+              strokeWidth="4"
+            />
+            {/* Boat deck detail */}
+            <ellipse cx="0" cy="10" rx="65" ry="12" fill="#a0522d" stroke="#1a1a1a" strokeWidth="2" />
+            <line x1="-40" y1="10" x2="40" y2="10" stroke="#1a1a1a" strokeWidth="2" />
+            
+            {/* Mast - taller and more prominent */}
+            <line x1="0" y1="-10" x2="0" y2="-100" stroke="#1a1a1a" strokeWidth="5" />
+            
+            {/* Main sail - larger and more detailed */}
+            <path
+              d="M0,-10 L0,-80 L-50,-70 L-40,-30 Z"
+              fill="#ffffff"
+              stroke="#1a1a1a"
+              strokeWidth="4"
+            />
+            {/* Sail details */}
+            <line x1="-25" y1="-40" x2="-25" y2="-70" stroke="#1a1a1a" strokeWidth="2" />
+            <line x1="-12" y1="-35" x2="-12" y2="-65" stroke="#1a1a1a" strokeWidth="1.5" />
+            
+            {/* Front sail (jib) - better proportioned */}
+            <path
+              d="M0,-10 L0,-70 L35,-65 L30,-30 Z"
+              fill="#f5f5f5"
+              stroke="#1a1a1a"
+              strokeWidth="3"
+            />
+            
+            {/* Flag on top - more visible */}
+            <rect x="0" y="-100" width="20" height="15" fill="#ff4444" stroke="#1a1a1a" strokeWidth="2" />
+            <path d="M0,-100 L10,-92 L0,-85 Z" fill="#ffffff" />
+            
+            {/* Boat reflection in water - subtle */}
+            <g opacity="0.25" transform="scale(1, -1) translate(0, -90)">
+              <path
+                d="M-70,10 Q-50,-5 0,-10 Q50,-5 70,10 L70,35 Q50,40 0,40 Q-50,40 -70,35 Z"
+                fill="#8b4513"
+                stroke="#1a1a1a"
+                strokeWidth="3"
+              />
+            </g>
+          </g>
+
+          {/* Birds - Hand-drawn style with black outlines */}
+          <g>
+            <motion.g
+              initial={{ x: 0 }}
               animate={{ 
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                x: [0, 150, 0],
+                y: [0, -5, 0]
               }}
               transition={{ 
-                duration: 8, 
-                repeat: Infinity, 
-                ease: "linear" 
-              }}
-              style={{ 
-                backgroundSize: '200% 200%',
-                filter: 'drop-shadow(0 0 30px rgba(59, 130, 246, 0.6))',
+                x: { duration: 20, repeat: Infinity, ease: 'linear' },
+                y: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
               }}
             >
-              <motion.span
-                initial={{ opacity: 0, y: 50 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.5, type: "spring", stiffness: 100 }}
-              >
-                DevBros
-              </motion.span>
-            </motion.span>
-            <motion.span 
-              className="block text-white mt-3 sm:mt-5 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight"
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.7, type: "spring" }}
+              <path
+                d="M300,350 Q310,340 320,350 Q310,360 300,350"
+                fill="none"
+                stroke="#1a1a1a"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </motion.g>
+            <motion.g
+              initial={{ x: 0 }}
+              animate={{ 
+                x: [0, -120, 0],
+                y: [0, 5, 0]
+              }}
+              transition={{ 
+                x: { duration: 18, repeat: Infinity, ease: 'linear', delay: 1 },
+                y: { duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }
+              }}
             >
-              Desarrollo Web & Mobile
-            </motion.span>
+              <path
+                d="M1200,400 Q1210,390 1220,400 Q1210,410 1200,400"
+                fill="none"
+                stroke="#1a1a1a"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </motion.g>
+            <motion.g
+              initial={{ x: 0 }}
+              animate={{ 
+                x: [0, 100, 0],
+                y: [0, -3, 0]
+              }}
+              transition={{ 
+                x: { duration: 22, repeat: Infinity, ease: 'linear', delay: 0.5 },
+                y: { duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }
+              }}
+            >
+              <path
+                d="M600,320 Q610,310 620,320 Q610,330 600,320"
+                fill="none"
+                stroke="#1a1a1a"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </motion.g>
+          </g>
+
+          {/* Sun - Hand-drawn style with animation */}
+          <motion.g
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.05, 1]
+            }}
+            transition={{
+              rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
+              scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+            }}
+            style={{ transformOrigin: '1600px 200px' }}
+          >
+            <circle cx="1600" cy="200" r="60" fill="#ffd93d" stroke="#1a1a1a" strokeWidth="4" />
+            <circle cx="1600" cy="200" r="50" fill="#ffe066" />
+            {/* Sun rays - hand-drawn style */}
+            {[...Array(8)].map((_, i) => {
+              const angle = (i * Math.PI * 2) / 8;
+              const x1 = 1600 + Math.cos(angle) * 55;
+              const y1 = 200 + Math.sin(angle) * 55;
+              const x2 = 1600 + Math.cos(angle) * 75;
+              const y2 = 200 + Math.sin(angle) * 75;
+              return (
+                <line
+                  key={i}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke="#1a1a1a"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              );
+            })}
+          </motion.g>
+        </svg>
+      </div>
+
+      {/* 3D Particle Background - Subtle enhancement */}
+      <div className="absolute inset-0 z-10 pointer-events-none opacity-30">
+        <ParticleBackground />
+      </div>
+
+      {/* Floating 3D Geometry - Subtle background elements */}
+      <div className="absolute inset-0 z-10 pointer-events-none opacity-20">
+        <FloatingGeometry />
+      </div>
+
+      {/* Main Content - Overlay on illustration */}
+      <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 sm:px-8 lg:px-12 py-20">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Main Headline - Serif font style */}
+          <motion.h1 
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif mb-6 text-[#1a1a1a] leading-tight font-bold tracking-tight"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            Desarrollo que genera
+            <br />
+            <span className="text-[#1a1a1a]">resultados reales.</span>
           </motion.h1>
           
+          {/* Sub-headline */}
           <motion.p 
-            className="text-2xl sm:text-3xl md:text-4xl text-gray-100 mb-8 sm:mb-10 leading-relaxed max-w-5xl mx-auto px-4 font-medium"
-            initial={{ opacity: 0, y: 30 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.9 }}
+            className="text-lg sm:text-xl text-[#1a1a1a] mb-8 font-sans font-normal leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Transformamos tus ideas en aplicaciones que generan resultados.
+            Transformamos tus ideas en aplicaciones que funcionan y venden.
           </motion.p>
           
-          <motion.p 
-            className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-14 sm:mb-20 leading-relaxed max-w-4xl mx-auto px-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.1 }}
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
           >
-            <span className="text-blue-400 font-bold">DevBros</span> somos dos hermanos especializados en desarrollo web y móvil. 
-            <span className="text-emerald-400 font-semibold"> Sin intermediarios, sin complicaciones.</span> 
-            <span className="text-white"> Solo código de calidad que vende.</span>
-          </motion.p>
-          
-          {/* CTA Buttons with advanced effects */}
-          <motion.div 
-            className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center mb-20 sm:mb-24 px-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.3 }}
-          >
-            <motion.a
+            <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative px-12 sm:px-14 py-6 sm:py-7 bg-gradient-to-r from-emerald-500 via-emerald-500 to-emerald-600 text-white font-black rounded-2xl text-xl sm:text-2xl shadow-2xl shadow-emerald-500/50 overflow-hidden"
-              whileHover={{ 
-                scale: 1.05, 
-                boxShadow: "0 25px 50px rgba(16, 185, 129, 0.5)",
-              }}
-              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#87d0c3] border-2 border-black rounded-lg text-black font-bold text-base hover:bg-[#7bc4b5] transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all font-sans"
             >
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                initial={{ x: '-100%' }}
-                whileHover={{ x: '100%' }}
-                transition={{ duration: 0.8 }}
-              />
-              <span className="relative z-10 flex items-center justify-center gap-4">
-                <motion.svg 
-                  className="w-8 h-8" 
-                  fill="currentColor" 
-                  viewBox="0 0 24 24"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                </motion.svg>
-                Hablar por WhatsApp
-                <motion.svg 
-                  className="w-7 h-7" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  initial={{ x: 0 }}
-                  whileHover={{ x: 6 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </motion.svg>
-              </span>
-            </motion.a>
-            <motion.a
-              href="#proyectos"
-              className="px-12 sm:px-14 py-6 sm:py-7 border-2 border-white/40 text-white font-black rounded-2xl backdrop-blur-sm text-xl sm:text-2xl shadow-xl"
-              whileHover={{ 
-                scale: 1.05,
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                borderColor: "rgba(255, 255, 255, 0.6)",
-                boxShadow: "0 20px 40px rgba(255, 255, 255, 0.1)",
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Ver Proyectos
-            </motion.a>
-          </motion.div>
-          
-          {/* Stats with advanced animations */}
-          <motion.div 
-            className="grid grid-cols-3 gap-4 sm:gap-8 md:gap-12 lg:gap-16 max-w-4xl sm:max-w-5xl mx-auto px-4"
-            initial={{ opacity: 0, y: 40 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 1.5 }}
-          >
-            {[
-              { value: '50+', label: 'Proyectos', color: 'from-blue-500 to-blue-400' },
-              { value: 'DevBros', label: 'Hermanos Dev', color: 'from-blue-600 to-cyan-500' },
-              { value: '100%', label: 'Resultados', color: 'from-emerald-500 to-emerald-400' }
-            ].map((stat, index) => (
-              <motion.div 
-                key={index} 
-                className="text-center relative"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.6, delay: 1.7 + index * 0.15, type: "spring", stiffness: 200 }}
-                whileHover={{ scale: 1.15, y: -5 }}
-              >
-                <motion.div 
-                  className={`text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r ${stat.color} mb-3 sm:mb-4 relative z-10`}
-                  animate={{ 
-                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                  }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: Infinity, 
-                    ease: "linear" 
-                  }}
-                  style={{ 
-                    backgroundSize: '200% 200%',
-                    filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.4))',
-                  }}
-                >
-                  <span className="block sm:inline relative z-20">{stat.value}</span>
-                </motion.div>
-              </motion.div>
-            ))}
+              Hablar por WhatsApp
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
           </motion.div>
         </div>
       </div>
-      
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { 
-            transform: translate(0, 0) scale(1);
-            opacity: 0.2;
-          }
-          50% { 
-            transform: translate(20px, -20px) scale(1.1);
-            opacity: 0.5;
-          }
-        }
-      `}</style>
+
+      {/* "My Guide" Badge - Bottom Left */}
+      <motion.div
+        className="fixed bottom-8 left-8 z-30 w-16 h-16 bg-[#ffd93d] border-4 border-black rounded-full flex items-center justify-center cursor-pointer shadow-lg"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        animate={{
+          y: [0, -5, 0],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      >
+        <svg className="w-8 h-8" fill="none" stroke="black" viewBox="0 0 24 24" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </motion.div>
     </section>
   );
 }
-
-
-
