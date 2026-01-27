@@ -1,14 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 
 interface ProcessHeroBackgroundProps {
   scene: 'ideas' | 'reunion' | 'definicion' | 'tecnologias' | 'desarrollo' | 'lanzamiento';
   isActive: boolean;
 }
 
-export default function ProcessHeroBackground({ scene, isActive }: ProcessHeroBackgroundProps) {
+function ProcessHeroBackground({ scene, isActive }: ProcessHeroBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Different color schemes for each scene
@@ -115,8 +115,8 @@ export default function ProcessHeroBackground({ scene, isActive }: ProcessHeroBa
                 </g>
               );
             })}
-            {/* Snowflakes falling */}
-            {[...Array(25)].map((_, i) => (
+            {/* Snowflakes falling - reduced for performance */}
+            {[...Array(15)].map((_, i) => (
               <motion.circle
                 key={i}
                 cx={50 + (i * 73) % 400}
@@ -145,7 +145,7 @@ export default function ProcessHeroBackground({ scene, isActive }: ProcessHeroBa
         // Stars
         return (
           <>
-            {[...Array(30)].map((_, i) => (
+            {[...Array(20)].map((_, i) => (
               <motion.circle
                 key={i}
                 cx={50 + (i * 67) % 400}
@@ -216,18 +216,10 @@ export default function ProcessHeroBackground({ scene, isActive }: ProcessHeroBa
         </defs>
 
         {/* Sky with animated gradient */}
-        <motion.rect
+        <rect
           width="1920"
           height="1080"
           fill={`url(#skyGradient-${scene})`}
-          animate={{
-            opacity: [1, 0.95, 1]
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: 'easeInOut'
-          }}
         />
 
         {/* Mountains */}
@@ -439,3 +431,6 @@ export default function ProcessHeroBackground({ scene, isActive }: ProcessHeroBa
     </motion.div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+export default memo(ProcessHeroBackground);

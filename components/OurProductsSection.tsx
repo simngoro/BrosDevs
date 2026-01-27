@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import SectionParticles from './SectionParticles';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -77,8 +76,8 @@ export default function OurProductsSection() {
 
   return (
     <section ref={sectionRef} className="py-20 sm:py-24 lg:py-32 bg-[#fcf8f3] relative overflow-hidden">
-      {/* Subtle particle background - reduced for performance */}
-      <SectionParticles count={250} color="#a8e6cf" intensity={0.15} />
+      {/* Subtle particle background - disabled for performance */}
+      {/* <SectionParticles count={100} color="#a8e6cf" intensity={0.1} /> */}
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

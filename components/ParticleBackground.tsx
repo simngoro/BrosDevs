@@ -5,7 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
-function FloatingParticles({ count = 800 }) {
+function FloatingParticles({ count = 200 }) {
   const mesh = useRef<THREE.Points>(null);
 
   const particles = useMemo(() => {
@@ -69,10 +69,12 @@ export default function ParticleBackground() {
       <Canvas
         camera={{ position: [0, 0, 1000], fov: 75 }}
         style={{ background: 'transparent' }}
+        dpr={[1, 1.5]} // Limit pixel ratio for performance
+        performance={{ min: 0.5 }} // Reduce quality on low-end devices
       >
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
-        <FloatingParticles count={800} />
+        <FloatingParticles count={200} />
       </Canvas>
     </div>
   );

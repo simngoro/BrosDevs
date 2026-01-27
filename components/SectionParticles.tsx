@@ -5,7 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
-function Particles({ count = 300, color = '#87d0c3' }) {
+function Particles({ count = 100, color = '#87d0c3' }) {
   const mesh = useRef<THREE.Points>(null);
 
   const particles = useMemo(() => {
@@ -79,6 +79,8 @@ export default function SectionParticles({
       <Canvas
         camera={{ position: [0, 0, 500], fov: 75 }}
         style={{ background: 'transparent' }}
+        dpr={[1, 1.5]} // Limit pixel ratio for performance
+        performance={{ min: 0.5 }} // Reduce quality on low-end devices
       >
         <ambientLight intensity={0.5} />
         <Particles count={count} color={color} />

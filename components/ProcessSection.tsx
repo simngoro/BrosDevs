@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import SectionParticles from './SectionParticles';
 import ProcessHeroBackground from './ProcessHeroBackground';
 
 if (typeof window !== 'undefined') {
@@ -478,37 +477,32 @@ export default function ProcessSection() {
         }
       });
 
-      return () => {
-        clearTimeout(timeoutId);
-        window.removeEventListener('resize', updatePath);
-      };
-
-      // Animate illustrations appearing with professional GSAP animations
-      illustrationRefs.current.forEach((illustration, index) => {
-        if (illustration) {
-          // Base animation for illustration container
-          gsap.fromTo(illustration,
-            {
-              opacity: 0,
-              scale: 0.8,
-              rotation: -5,
-            },
-            {
-              opacity: 1,
-              scale: 1,
-              rotation: 0,
-              duration: 1,
-              ease: 'back.out(1.7)',
-              scrollTrigger: {
-                trigger: illustration,
-                start: 'top 85%',
-                toggleActions: 'play none none reverse',
+      // Delay heavy animations until after initial render
+      const animationTimeout = setTimeout(() => {
+        // Animate illustrations appearing with professional GSAP animations
+        illustrationRefs.current.forEach((illustration, index) => {
+          if (illustration) {
+            // Base animation for illustration container - simplified
+            gsap.fromTo(illustration,
+              {
+                opacity: 0,
+                y: 30,
               },
-            }
-          );
+              {
+                opacity: 1,
+                y: 0,
+                duration: 0.6,
+                ease: 'power2.out',
+                scrollTrigger: {
+                  trigger: illustration,
+                  start: 'top 85%',
+                  toggleActions: 'play none none reverse',
+                },
+              }
+            );
 
-          // Professional animations for meeting illustration
-          if (processSteps[index]?.illustration === 'meeting') {
+            // Professional animations for meeting illustration - only if visible
+            if (processSteps[index]?.illustration === 'meeting') {
             const person1 = meetingRefs.current.person1;
             const person2 = meetingRefs.current.person2;
             const bubble1 = meetingRefs.current.bubble1;
@@ -720,16 +714,22 @@ export default function ProcessSection() {
             }
           );
         }
-      });
-    }, sectionRef);
+        });
+      }, 800); // Delay animations
 
-    return () => ctx.revert();
+      return () => {
+        clearTimeout(timeoutId);
+        clearTimeout(animationTimeout);
+        window.removeEventListener('resize', updatePath);
+        ctx.revert();
+      };
+    }, sectionRef);
   }, []);
 
   return (
     <section ref={sectionRef} id="servicios" className="py-20 sm:py-24 lg:py-32 bg-white relative overflow-hidden">
-      {/* Subtle particle background - reduced for performance */}
-      <SectionParticles count={200} color="#87d0c3" intensity={0.1} />
+      {/* Subtle particle background - disabled for performance */}
+      {/* <SectionParticles count={100} color="#87d0c3" intensity={0.08} /> */}
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

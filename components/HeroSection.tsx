@@ -4,8 +4,6 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import ParticleBackground from './ParticleBackground';
-import FloatingGeometry from './FloatingGeometry';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -35,75 +33,80 @@ export default function HeroSection() {
   };
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Boat moving left to right on water - following the water line, full screen
-      if (boatRef.current) {
-        const startX = -200; // Start off-screen left
-        const endX = 2120; // End off-screen right (1920 + 200 for smooth exit)
-        const totalDistance = endX - startX;
-        
-        // Create timeline for continuous loop
-        const boatTimeline = gsap.timeline({ repeat: -1 });
-        
-        // Move boat from left to right across entire screen
-        boatTimeline.to(boatRef.current, {
-          x: endX,
-          duration: 25, // Slower for more visible movement
-          ease: 'none',
-          onUpdate: function() {
-            if (boatRef.current) {
-              // Calculate current X position
-              const currentX = startX + (this.progress() * totalDistance);
-              const waterY = getWaterLevel(currentX);
-              // Set Y position to follow water line
-              // Base transform is 580, adjust based on wave calculation
-              gsap.set(boatRef.current, { y: waterY - 600 + 580 });
-              
-              // Gentle rotation based on wave slope (derivative of wave)
-              const slope = Math.cos(currentX * 0.005) * 0.075;
-              gsap.set(boatRef.current, { rotation: slope * 10 });
+    // Delay heavy animations until after initial render
+    const timeoutId = setTimeout(() => {
+      const ctx = gsap.context(() => {
+        // Boat moving left to right on water - following the water line, full screen
+        if (boatRef.current) {
+          const startX = -200; // Start off-screen left
+          const endX = 2120; // End off-screen right (1920 + 200 for smooth exit)
+          const totalDistance = endX - startX;
+          
+          // Create timeline for continuous loop
+          const boatTimeline = gsap.timeline({ repeat: -1 });
+          
+          // Move boat from left to right across entire screen
+          boatTimeline.to(boatRef.current, {
+            x: endX,
+            duration: 25, // Slower for more visible movement
+            ease: 'none',
+            onUpdate: function() {
+              if (boatRef.current) {
+                // Calculate current X position
+                const currentX = startX + (this.progress() * totalDistance);
+                const waterY = getWaterLevel(currentX);
+                // Set Y position to follow water line
+                // Base transform is 580, adjust based on wave calculation
+                gsap.set(boatRef.current, { y: waterY - 600 + 580 });
+                
+                // Gentle rotation based on wave slope (derivative of wave)
+                const slope = Math.cos(currentX * 0.005) * 0.075;
+                gsap.set(boatRef.current, { rotation: slope * 10 });
+              }
             }
-          }
-        });
-        
-        // Reset position instantly (invisible transition)
-        boatTimeline.set(boatRef.current, { 
-          x: startX,
-          y: getWaterLevel(startX) - 600 + 580,
-          rotation: 0,
-          duration: 0
-        });
-      }
-
-      // Water waves animation
-      waterWavesRef.current.forEach((wave, index) => {
-        if (wave) {
-          gsap.to(wave, {
-            attr: { d: wave.getAttribute('d')?.replace(/Q\d+,\d+/, `Q${300 + index * 50},${650 + index * 5}`) || '' },
-            duration: 2 + index * 0.3,
-            repeat: -1,
-            yoyo: true,
-            ease: 'sine.inOut',
+          });
+          
+          // Reset position instantly (invisible transition)
+          boatTimeline.set(boatRef.current, { 
+            x: startX,
+            y: getWaterLevel(startX) - 600 + 580,
+            rotation: 0,
+            duration: 0
           });
         }
-      });
 
-      // Parallax landscape on scroll
-      if (landscapeRef.current) {
-        gsap.to(landscapeRef.current, {
-          y: 100,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true,
-          },
+        // Water waves animation - reduced complexity
+        waterWavesRef.current.forEach((wave, index) => {
+          if (wave && index < 2) { // Only animate first 2 waves
+            gsap.to(wave, {
+              attr: { d: wave.getAttribute('d')?.replace(/Q\d+,\d+/, `Q${300 + index * 50},${650 + index * 5}`) || '' },
+              duration: 2 + index * 0.3,
+              repeat: -1,
+              yoyo: true,
+              ease: 'sine.inOut',
+            });
+          }
         });
-      }
-    }, heroRef);
 
-    return () => ctx.revert();
+        // Parallax landscape on scroll
+        if (landscapeRef.current) {
+          gsap.to(landscapeRef.current, {
+            y: 100,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: 'top top',
+              end: 'bottom top',
+              scrub: true,
+            },
+          });
+        }
+      }, heroRef);
+    }, 500); // Delay 500ms after initial render
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   return (
@@ -465,15 +468,12 @@ export default function HeroSection() {
         </svg>
       </div>
 
-      {/* 3D Particle Background - Subtle enhancement */}
-      <div className="absolute inset-0 z-10 pointer-events-none opacity-30">
-        <ParticleBackground />
-      </div>
-
-      {/* Floating 3D Geometry - Subtle background elements */}
-      <div className="absolute inset-0 z-10 pointer-events-none opacity-20">
-        <FloatingGeometry />
-      </div>
+      {/* 3D Particle Background - Disabled for initial load performance to improve speed */}
+      {/* <Suspense fallback={null}>
+        <div className="absolute inset-0 z-10 pointer-events-none opacity-15">
+          <ParticleBackground />
+        </div>
+      </Suspense> */}
 
       {/* Main Content - Overlay on illustration */}
       <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 sm:px-8 lg:px-12 py-20">
