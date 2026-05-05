@@ -1,18 +1,31 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import {
+  ShoppingBag,
+  UtensilsCrossed,
+  Briefcase,
+  HeartPulse,
+  GraduationCap,
+  Building2,
+  type LucideIcon,
+} from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
 export default function IndustriesSection() {
   const { t } = useLanguage();
 
-  const industries = [
-    { icon: '🛒', tags: ['Next.js', 'Stripe', 'Admin Panel'], accent: '#87d0c3' },
-    { icon: '🍽️', tags: ['React Native', 'Maps API', 'Realtime'], accent: '#ff6b9d' },
-    { icon: '💼', tags: ['Next.js', 'Supabase', 'Multi-tenant'], accent: '#ffd93d' },
-    { icon: '🏥', tags: ['HIPAA', 'Video SDK', 'HL7'], accent: '#a6f77b' },
-    { icon: '🏫', tags: ['Video', 'LMS', 'Certs'], accent: '#c084fc' },
-    { icon: '🏠', tags: ['Maps', '3D Tours', 'CRM'], accent: '#60a5fa' },
+  const industries: {
+    Icon: LucideIcon;
+    tags: string[];
+    accent: string;
+  }[] = [
+    { Icon: ShoppingBag, tags: ['Next.js', 'Stripe', 'Admin Panel'], accent: '#87d0c3' },
+    { Icon: UtensilsCrossed, tags: ['React Native', 'Maps API', 'Realtime'], accent: '#ff6b9d' },
+    { Icon: Briefcase, tags: ['Next.js', 'Supabase', 'Multi-tenant'], accent: '#ffd93d' },
+    { Icon: HeartPulse, tags: ['HIPAA', 'Video SDK', 'HL7'], accent: '#a6f77b' },
+    { Icon: GraduationCap, tags: ['Video', 'LMS', 'Certs'], accent: '#c084fc' },
+    { Icon: Building2, tags: ['Maps', '3D Tours', 'CRM'], accent: '#60a5fa' },
   ];
 
   return (
@@ -69,48 +82,64 @@ export default function IndustriesSection() {
 
           {/* Industries grid */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {t.industries.list.map((industry, i) => (
-              <motion.div
-                key={industry.title}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.08 }}
-                whileHover={{ y: -6 }}
-                className="group relative border border-white/10 bg-white/[0.02] backdrop-blur-sm rounded-xl p-6 sm:p-8 hover:border-white/20 transition-colors overflow-hidden"
-              >
-                <div
-                  className="absolute top-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"
-                  style={{ backgroundColor: industries[i].accent }}
-                />
+            {t.industries.list.map((industry, i) => {
+              const { Icon, tags, accent } = industries[i];
+              return (
+                <motion.div
+                  key={industry.title}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: i * 0.08 }}
+                  whileHover={{ y: -6 }}
+                  className="group relative border border-white/10 bg-white/[0.02] backdrop-blur-sm rounded-xl p-6 sm:p-8 hover:border-white/20 transition-colors overflow-hidden"
+                >
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"
+                    style={{ backgroundColor: accent }}
+                  />
 
-                <div className="text-4xl sm:text-5xl mb-4 sm:mb-6">{industries[i].icon}</div>
+                  {/* Icon */}
+                  <div
+                    className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl border mb-5 sm:mb-6 transition-colors"
+                    style={{
+                      borderColor: `${accent}40`,
+                      backgroundColor: `${accent}10`,
+                      color: accent,
+                    }}
+                  >
+                    <Icon
+                      className="w-6 h-6 sm:w-7 sm:h-7"
+                      strokeWidth={1.75}
+                    />
+                  </div>
 
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">
-                  {industry.title}
-                </h3>
-                <p className="text-sm text-gray-400 font-sans leading-relaxed mb-5 sm:mb-6">
-                  {industry.description}
-                </p>
+                  <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3">
+                    {industry.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 font-sans leading-relaxed mb-5 sm:mb-6">
+                    {industry.description}
+                  </p>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2">
-                  {industries[i].tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="font-mono text-[10px] uppercase tracking-wider px-2 sm:px-2.5 py-1 rounded border"
-                      style={{
-                        color: industries[i].accent,
-                        borderColor: `${industries[i].accent}40`,
-                        backgroundColor: `${industries[i].accent}08`,
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-mono text-[10px] uppercase tracking-wider px-2 sm:px-2.5 py-1 rounded border"
+                        style={{
+                          color: accent,
+                          borderColor: `${accent}40`,
+                          backgroundColor: `${accent}08`,
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>

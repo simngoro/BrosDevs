@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Power, Bug, Wrench, Rocket, type LucideIcon } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
 if (typeof window !== 'undefined') {
@@ -11,73 +12,10 @@ if (typeof window !== 'undefined') {
 }
 
 const accents = ['#87d0c3', '#ff6b9d', '#ffd93d', '#a6f77b'];
-const icons = ['boot', 'scan', 'wrench', 'rocket'];
+const lucideIcons: LucideIcon[] = [Power, Bug, Wrench, Rocket];
 
 // SSR-safe layout effect
 const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-function LogIcon({ type, color }: { type: string; color: string }) {
-  const common = {
-    stroke: color,
-    strokeWidth: 1.5,
-    fill: 'none',
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
-  switch (type) {
-    case 'boot':
-      return (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <circle cx="50" cy="50" r="35" {...common} />
-          <circle cx="50" cy="50" r="25" {...common} opacity="0.5" />
-          <line x1="50" y1="15" x2="50" y2="50" {...common} />
-          <circle cx="50" cy="50" r="3" fill={color} />
-        </svg>
-      );
-    case 'scan':
-      return (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <rect x="20" y="20" width="60" height="60" {...common} rx="4" />
-          <line x1="20" y1="40" x2="80" y2="40" {...common} />
-          <line x1="30" y1="55" x2="55" y2="55" {...common} />
-          <line x1="30" y1="65" x2="65" y2="65" {...common} />
-          <line x1="30" y1="75" x2="50" y2="75" {...common} />
-          <circle cx="70" cy="30" r="3" fill={color} />
-        </svg>
-      );
-    case 'wrench':
-      return (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <path
-            d="M 25 25 L 45 45 M 35 15 L 55 35 M 45 55 L 75 85 M 20 30 Q 20 20 30 20 Q 40 20 40 30 Q 40 40 30 40 Q 20 40 20 30"
-            {...common}
-          />
-          <circle cx="30" cy="30" r="5" {...common} />
-          <path d="M 60 50 L 80 70" {...common} />
-        </svg>
-      );
-    case 'rocket':
-      return (
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <path
-            d="M 50 10 Q 65 25 65 50 L 65 70 L 35 70 L 35 50 Q 35 25 50 10 Z"
-            {...common}
-          />
-          <circle cx="50" cy="40" r="5" {...common} />
-          <path
-            d="M 35 70 L 25 85 L 35 80 M 65 70 L 75 85 L 65 80"
-            {...common}
-          />
-          <path
-            d="M 45 75 L 45 85 M 50 75 L 50 90 M 55 75 L 55 85"
-            {...common}
-          />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
 
 export default function StickyHorizontalScroll() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -157,7 +95,7 @@ export default function StickyHorizontalScroll() {
   const logs = t.sticky.logs.map((log, i) => ({
     ...log,
     accent: accents[i],
-    icon: icons[i],
+    Icon: lucideIcons[i],
   }));
 
   // Refresh ScrollTrigger when locale changes (text width changes)
@@ -331,10 +269,10 @@ export default function StickyHorizontalScroll() {
                         }}
                       />
                       <div
-                        className="w-40 h-40 relative"
-                        style={{ filter: `drop-shadow(0 0 20px ${log.accent}40)` }}
+                        className="w-40 h-40 relative flex items-center justify-center"
+                        style={{ filter: `drop-shadow(0 0 20px ${log.accent}40)`, color: log.accent }}
                       >
-                        <LogIcon type={log.icon} color={log.accent} />
+                        <log.Icon className="w-28 h-28" strokeWidth={1.25} />
                       </div>
 
                       <div className="absolute top-3 left-3 w-4 h-4 border-t border-l" style={{ borderColor: log.accent }} />

@@ -1,12 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Lightbulb, FileText, Rocket, Zap, Code2, Lock, type LucideIcon } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
 export default function HowItWorksSection() {
   const { t } = useLanguage();
   const accents = ['#87d0c3', '#a6f77b', '#ffd93d'];
-  const stepEmojis = ['💡', '📐', '🚀'];
+  const featureIcons: LucideIcon[] = [Zap, Code2, Lock];
+  const stepIcons: LucideIcon[] = [Lightbulb, FileText, Rocket];
 
   return (
     <section
@@ -73,9 +75,12 @@ export default function HowItWorksSection() {
                   <div className="flex items-center justify-between mb-5 sm:mb-6">
                     <div
                       className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${accents[i]}25`, border: `1.5px solid ${accents[i]}` }}
+                      style={{ backgroundColor: `${accents[i]}25`, border: `1.5px solid ${accents[i]}`, color: accents[i] }}
                     >
-                      <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full animate-pulse" style={{ backgroundColor: accents[i] }} />
+                      {(() => {
+                        const FeatureIcon = featureIcons[i];
+                        return <FeatureIcon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.75} />;
+                      })()}
                     </div>
                     <span
                       className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.3em] px-2 py-1 rounded border"
@@ -126,8 +131,11 @@ export default function HowItWorksSection() {
                     <div className="hidden sm:block absolute top-10 left-[60%] right-[-40%] h-px bg-gradient-to-r from-black/30 to-transparent" />
                   )}
 
-                  <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#87d0c3]/10 border-2 border-black mb-4 text-3xl sm:text-4xl">
-                    {stepEmojis[i]}
+                  <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#87d0c3]/10 border-2 border-black mb-4 text-black">
+                    {(() => {
+                      const StepIcon = stepIcons[i];
+                      return <StepIcon className="w-7 h-7 sm:w-8 sm:h-8" strokeWidth={1.75} />;
+                    })()}
                     <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black text-white flex items-center justify-center font-mono text-[10px] sm:text-xs font-bold">
                       0{i + 1}
                     </div>
