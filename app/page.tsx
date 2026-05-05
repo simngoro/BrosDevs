@@ -2,46 +2,72 @@ import dynamic from 'next/dynamic';
 import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 
-// Lazy load heavy components below the fold
-const GetDirectionsSection = dynamic(() => import('../components/GetDirectionsSection'), {
-  loading: () => <div className="min-h-[400px]" />,
+const DiagnosticSection = dynamic(() => import('../components/DiagnosticSection'), {
+  loading: () => <div className="min-h-[400px] bg-[#0a0a0a]" />,
 });
-const ProcessSection = dynamic(() => import('../components/ProcessSection'), {
-  loading: () => <div className="min-h-[400px]" />,
+const StickyHorizontalScroll = dynamic(
+  () => import('../components/StickyHorizontalScroll'),
+  {
+    loading: () => <div className="min-h-screen bg-[#0a0a0a]" />,
+  }
+);
+const ComparisonSection = dynamic(() => import('../components/ComparisonSection'), {
+  loading: () => <div className="min-h-[400px] bg-[#fcf8f3]" />,
 });
-const TestimonialsSection = dynamic(() => import('../components/TestimonialsSection'), {
-  loading: () => <div className="min-h-[400px]" />,
+const HowItWorksSection = dynamic(() => import('../components/HowItWorksSection'), {
+  loading: () => <div className="min-h-[400px] bg-[#fcf8f3]" />,
 });
-const OurProductsSection = dynamic(() => import('../components/OurProductsSection'), {
-  loading: () => <div className="min-h-[400px]" />,
+const ValuePropositionSection = dynamic(
+  () => import('../components/ValuePropositionSection'),
+  {
+    loading: () => <div className="min-h-[400px] bg-[#fcf8f3]" />,
+  }
+);
+const IndustriesSection = dynamic(() => import('../components/IndustriesSection'), {
+  loading: () => <div className="min-h-[400px] bg-[#0a0a0a]" />,
 });
-const PortfolioShowcase = dynamic(() => import('../components/PortfolioShowcase'), {
-  loading: () => <div className="min-h-[400px]" />,
+const TestimonialsSection = dynamic(
+  () => import('../components/TestimonialsSection'),
+  {
+    loading: () => <div className="min-h-[400px] bg-[#0a0a0a]" />,
+  }
+);
+const PricingSection = dynamic(() => import('../components/PricingSection'), {
+  loading: () => <div className="min-h-[400px] bg-[#fcf8f3]" />,
+});
+const FAQSection = dynamic(() => import('../components/FAQSection'), {
+  loading: () => <div className="min-h-[400px] bg-[#0a0a0a]" />,
+});
+const FinalCTASection = dynamic(() => import('../components/FinalCTASection'), {
+  loading: () => <div className="min-h-[400px] bg-[#0a0a0a]" />,
 });
 const ContactSection = dynamic(() => import('../components/ContactSection'), {
-  loading: () => <div className="min-h-[400px]" />,
+  loading: () => <div className="min-h-[400px] bg-[#fcf8f3]" />,
 });
 const Footer = dynamic(() => import('../components/Footer'), {
-  loading: () => <div className="min-h-[200px]" />,
+  loading: () => <div className="min-h-[200px] bg-[#0a0a0a]" />,
 });
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#fcf8f3] text-gray-900">
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
       <Header />
       <HeroSection />
-      <GetDirectionsSection />
-      <ProcessSection />
-      <div id="testimonios">
-        <TestimonialsSection />
+      <DiagnosticSection />
+      <StickyHorizontalScroll />
+      <ComparisonSection />
+      <HowItWorksSection />
+      <ValuePropositionSection />
+      <div id="industrias">
+        <IndustriesSection />
       </div>
-      <OurProductsSection />
-      <div id="proyectos">
-        <PortfolioShowcase />
+      <TestimonialsSection />
+      <PricingSection />
+      <div id="faq">
+        <FAQSection />
       </div>
-      <div id="contacto">
-        <ContactSection />
-      </div>
+      <FinalCTASection />
+      <ContactSection />
       <Footer />
     </div>
   );

@@ -2,49 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import { useLanguage } from '../lib/LanguageContext';
 
 export default function TestimonialsSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
-
-  const testimonials = [
-    {
-      quote: "DevBros transformó completamente nuestra plataforma de e-commerce. En 3 meses aumentamos las ventas en un 45%. El trabajo fue impecable y siempre estuvieron disponibles.",
-      author: "María González",
-      company: "CEO, TiendaOnline"
-    },
-    {
-      quote: "Trabajar con DevBros fue una experiencia increíble. Entendieron perfectamente nuestra visión y la ejecutaron mejor de lo que esperábamos. Profesionales de verdad.",
-      author: "Carlos Rodríguez",
-      company: "Fundador, TaskFlow"
-    },
-    {
-      quote: "Necesitábamos una app móvil compleja y DevBros la entregó a tiempo y superando expectativas. Su atención al detalle y comunicación constante hizo toda la diferencia.",
-      author: "Ana Martínez",
-      company: "CTO, HealthCare Pro"
-    },
-    {
-      quote: "Como startup, necesitábamos algo rápido y de calidad. DevBros nos dio ambas cosas. La plataforma que construyeron escaló perfectamente con nuestro crecimiento.",
-      author: "Luis Fernández",
-      company: "Co-fundador, RealEstate Hub"
-    },
-    {
-      quote: "DevBros no solo desarrolló nuestra aplicación, nos asesoró en cada paso. Su expertise técnico combinado con su visión de negocio fue invaluable.",
-      author: "Sofía Pérez",
-      company: "Directora, SocialConnect"
-    },
-    {
-      quote: "Después de trabajar con varias agencias, finalmente encontramos a DevBros. Transparentes, eficientes y con resultados que hablan por sí solos.",
-      author: "Diego Sánchez",
-      company: "CEO, Analytics Pro"
-    }
-  ];
+  const { t } = useLanguage();
+  const testimonials = t.testimonials.list;
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length);
@@ -54,99 +18,119 @@ export default function TestimonialsSection() {
     setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
-  // Auto-advance carousel
   useEffect(() => {
     const interval = setInterval(() => {
       nextTestimonial();
-    }, 5000);
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
+  const current = testimonials[currentIndex];
+
   return (
-    <section ref={sectionRef} id="testimonios" className="py-20 sm:py-24 lg:py-32 bg-[#fcf8f3] relative overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
+    <section
+      ref={sectionRef}
+      id="testimonios"
+      className="relative py-20 sm:py-24 lg:py-32 bg-[#0a0a0a] text-white overflow-hidden"
+    >
+      {/* Grid background */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }}
+      />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-5xl mx-auto">
           {/* Header */}
-          <motion.div 
-            className="text-center mb-16"
+          <motion.div
+            className="mb-12 sm:mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="text-xl font-serif italic text-[#4a4a4a] mb-2 font-light">Lo que dicen nuestros clientes</p>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif font-bold mb-6 text-[#1a1a1a] tracking-tight">
-              Testimonios
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-2 h-2 rounded-full bg-[#87d0c3]" />
+              <span className="font-mono text-xs sm:text-sm text-[#87d0c3] uppercase tracking-[0.3em]">
+                {t.testimonials.label}
+              </span>
+            </div>
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-tight mb-4 sm:mb-6 max-w-4xl">
+              {t.testimonials.titleStart}
+              <span className="italic font-light text-[#87d0c3]">
+                {t.testimonials.titleAccent}
+              </span>
+              {t.testimonials.titleEnd}
             </h2>
+            <p className="text-base sm:text-lg text-gray-400 max-w-2xl font-sans leading-relaxed">
+              {t.testimonials.subtitle}
+            </p>
           </motion.div>
 
           {/* Carousel */}
           <div className="relative">
-            {/* Large Opening Quote decoration - Left */}
-            <div className="absolute -left-8 -top-8 z-0 opacity-20">
-              <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.984zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-              </svg>
-            </div>
-            
-            {/* Large Closing Quote decoration - Right */}
-            <div className="absolute -right-8 -bottom-8 z-0 opacity-20">
-              <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24" transform="scale(-1, 1)">
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.984zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-              </svg>
-            </div>
-
-            {/* Navigation Arrows */}
-            <button
-              onClick={prevTestimonial}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center hover:bg-[#f5f5f5] transition-colors shadow-lg"
-              aria-label="Previous testimonial"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={nextTestimonial}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white border-2 border-black rounded-full flex items-center justify-center hover:bg-[#f5f5f5] transition-colors shadow-lg"
-              aria-label="Next testimonial"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-
-            {/* Testimonial Cards Container */}
-            <div className="relative h-96 overflow-hidden">
+            <div className="relative min-h-[480px] sm:min-h-[400px] lg:min-h-[360px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentIndex}
-                  initial={{ opacity: 0, x: 100 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
                   transition={{ duration: 0.5 }}
-                  className="absolute inset-0 flex items-center justify-center"
+                  className="absolute inset-0"
                 >
-                  <div className="bg-white border-2 border-black rounded-lg p-8 sm:p-12 max-w-3xl mx-auto shadow-lg relative">
-                    {/* Quote Text */}
-                    <p className="text-lg sm:text-xl text-[#1a1a1a] mb-6 leading-relaxed relative z-10 font-sans font-normal italic">
-                      {testimonials[currentIndex].quote}
-                    </p>
-                    
-                    {/* Author */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-serif text-xl font-bold text-[#1a1a1a] tracking-tight">
-                          {testimonials[currentIndex].author}
-                        </p>
-                        <p className="text-sm text-[#666] font-sans italic">
-                          {testimonials[currentIndex].company}
-                        </p>
+                  <div className="grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 items-center border border-white/10 bg-white/[0.02] backdrop-blur-sm rounded-2xl p-6 sm:p-8 lg:p-12 relative">
+                    {/* Quote SVG */}
+                    <div className="absolute -top-4 sm:-top-6 left-6 sm:left-8 text-[#87d0c3]/30">
+                      <svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.984zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                      </svg>
+                    </div>
+
+                    <div className="relative">
+                      <p className="font-serif text-lg sm:text-xl lg:text-2xl text-white mb-6 sm:mb-8 leading-relaxed italic">
+                        {current.quote}
+                      </p>
+
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-[#87d0c3] to-[#a6f77b] flex items-center justify-center font-bold text-black text-base sm:text-lg flex-shrink-0">
+                          {current.author
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .slice(0, 2)}
+                        </div>
+                        <div>
+                          <p className="font-serif text-base sm:text-lg font-bold text-white">
+                            {current.author}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-400 font-sans italic">
+                            {current.company}
+                          </p>
+                        </div>
                       </div>
-                      {/* BBB Rating */}
-                      <div className="flex items-center gap-2">
-                        <div className="text-yellow-500 text-xl">★★★★★</div>
-                        <span className="text-xs text-[#666] font-bold">5-Star Verified</span>
+                    </div>
+
+                    {/* Metric (mobile = inline below, desktop = right side) */}
+                    <div className="lg:hidden border-t border-white/10 pt-6 mt-2 flex items-center gap-4">
+                      <div className="font-serif text-3xl sm:text-4xl font-bold text-[#87d0c3]">
+                        {current.metric}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-mono text-gray-500 uppercase tracking-wider">
+                        {current.metricLabel}
+                      </div>
+                    </div>
+
+                    <div className="hidden lg:flex flex-col items-center justify-center min-w-[180px] border-l border-white/10 pl-8">
+                      <div className="font-serif text-5xl font-bold text-[#87d0c3] mb-2">
+                        {current.metric}
+                      </div>
+                      <div className="text-xs font-mono text-gray-500 uppercase tracking-wider text-center">
+                        {current.metricLabel}
                       </div>
                     </div>
                   </div>
@@ -154,39 +138,45 @@ export default function TestimonialsSection() {
               </AnimatePresence>
             </div>
 
-            {/* Dots Indicator */}
-            <div className="flex justify-center gap-2 mt-8">
-              {testimonials.map((_, index) => (
+            {/* Navigation */}
+            <div className="flex items-center justify-between mt-6 sm:mt-8">
+              <div className="flex gap-2">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      index === currentIndex
+                        ? 'w-8 bg-[#87d0c3]'
+                        : 'w-1.5 bg-white/20 hover:bg-white/40'
+                    }`}
+                    aria-label={`Go to testimonial ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex gap-2">
                 <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`w-3 h-3 rounded-full border-2 border-black transition-all ${
-                    index === currentIndex ? 'bg-[#87d0c3]' : 'bg-white'
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
+                  onClick={prevTestimonial}
+                  className="w-10 h-10 sm:w-11 sm:h-11 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors"
+                  aria-label="Previous testimonial"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextTestimonial}
+                  className="w-10 h-10 sm:w-11 sm:h-11 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-colors"
+                  aria-label="Next testimonial"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* More journeys button */}
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5 }}
-          >
-            <a
-              href="#testimonios"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#87d0c3] border-2 border-black rounded-lg text-black font-bold hover:bg-[#7bc4b5] transition-colors font-sans"
-            >
-              Mas viajes
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          </motion.div>
         </div>
       </div>
     </section>
